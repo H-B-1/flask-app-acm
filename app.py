@@ -1,29 +1,17 @@
 from flask import Flask, request, jsonify
-import joblib
-import pandas as pd
+import pickle
+import numpy as np
 
 app = Flask(__name__)
 
-# Add a route for the root URL
-@app.route('/', methods=['GET'])
-def home():
-    return "Flask app is running. Use '/predict' endpoint to make predictions."
-
-# Load the model
-model = joblib.load('cookie_decision_tree_model.pkl')
+# Load the saved model
+model = pickle.load(open('cookie_decision_tree_model_v1_5_2.pkl', 'rb'))
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    try:
-        data = request.json['data']
-        df = pd.DataFrame([data])
-
-        # Make prediction
-        prediction = model.predict(df)
-
-        return jsonify({'prediction': prediction[0]})
-    except Exception as e:
-        return jsonify({'error': str(e)})
+    data = request.json['data']
+    prediction = model.predict(np.array(data).reshape(1, -1))
+    return jsonify({'prediction': prediction[0]})
 
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=5000)
+    app.run(host='0.0.0.0', port=5000)
